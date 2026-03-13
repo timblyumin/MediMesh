@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from . import models, schemas, database
+from typing import List, Union, Optional
 
 # This line is the magic — it creates the tables if they don't exist
 models.Base.metadata.create_all(bind=database.engine)
@@ -17,6 +18,14 @@ def get_db():
         db.close()
 
 @app.get("/patients/", response_model=List[schemas.Patient])
-def read_patients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    patients = db.query(models.Patient).offset(skip).limit(limit).all()
-    return patients
+def read_patients(
+    department: Union[str, None] = None, 
+    acuity: Union[int, None] = None, 
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Patient)
+    if department:
+        query = query.filter(models.Patient.department == department)
+    if acuity:
+        query = query.filter(models.Patient.acuity_level == acuity)
+    return query.all()
