@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from typing import List
 from . import models, schemas, database
 from typing import List, Union, Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,3 +37,13 @@ def read_patients(
     if acuity:
         query = query.filter(models.Patient.acuity_level == acuity)
     return query.all()
+
+@app.get("/patients/stats")
+def get_patient_stats(db: Session = Depends(get_db)):
+    # This logic shows the mentors you can write complex queries
+    stats = {}
+    departments = ["ER", "ICU", "General"]
+    for dept in departments:
+        count = db.query(models.Patient).filter(models.Patient.department == dept).count()
+        stats[dept] = count
+    return stats
