@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from . import models, schemas, database
 from typing import List, Union, Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 # This line is the magic — it creates the tables if they don't exist
 models.Base.metadata.create_all(bind=database.engine)
