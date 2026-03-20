@@ -9,6 +9,14 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="MediMesh API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, you'd specify your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Dependency to get the database session
 def get_db():
     db = database.SessionLocal()
