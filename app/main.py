@@ -47,3 +47,26 @@ def get_patient_stats(db: Session = Depends(get_db)):
         count = db.query(models.Patient).filter(models.Patient.department == dept).count()
         stats[dept] = count
     return stats
+
+@app.get("/patients/priority", response_model=List[schemas.Patient])
+def get_priority_patients(db: Session = Depends(get_db)):
+    # Returns only patients requiring immediate intervention (Acuity 5)
+    return db.query(models.Patient).filter(models.Patient.acuity_level == 5).all()
+
+@app.get("/departments/saturation")
+def get_dept_saturation(db: Session = Depends(get_db)):
+    capacities = {"ER": 50, "ICU": 20, "General": 100}
+    saturation = {}
+    for dept, cap in capacities.items():
+        count = db.query(models.Patient).filter(models.Patient.department == dept).count()
+        saturation[dept] = round((count / cap) * 100, 2)
+    return saturation
+
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        # Quick check if DB is responsive
+        db.execute("SELECT 1")
+        return {"status": "healthy", "version": "1.2.0", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
