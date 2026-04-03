@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=medimesh
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db/medimesh
+
+volumes:
+  postgres_data:
