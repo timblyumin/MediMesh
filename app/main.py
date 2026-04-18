@@ -1,11 +1,29 @@
 import time
-from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Union, Optional
 from . import models, schemas, database
 
-# Initialize Database Tables
+# --- WEBSOCKET MANAGER (Real-Time Observability) ---
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, data: dict):
+        for connection in self.active_connections:
+            await connection.send_json(data)
+
+manager = ConnectionManager()
+
+# --- APP INITIALIZATION ---
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(
@@ -13,15 +31,14 @@ app = FastAPI(
     description="""
     Professional Hospital Optimization & Clinical Analytics Engine.
     
-    **Week 12 Features:**
-    * **Clinical Audit Logs**: Automated historical tracking of patient acuity changes.
-    * **Asynchronous Tasks**: Non-blocking clinical report generation.
-    * **Real-time Analytics**: Department saturation and high-acuity monitoring.
+    **Week 13 Features:**
+    * **Real-time Saturation Alerts**: Instant WebSocket notifications for critical capacity.
+    * **Clinical Audit Logs**: Historical tracking of patient status shifts.
+    * **Asynchronous Tasks**: Background clinical report generation.
     """,
-    version="1.4.0",
+    version="1.5.0",
 )
 
-# CORS Setup: Crucial for allowing your standalone frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,7 +47,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Observability Middleware
+# Observability Middleware (HTTP)
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -49,23 +66,32 @@ def get_db():
         db.close()
 
 # --- ASYNCHRONOUS TASK HELPERS ---
-
 def generate_clinical_report(report_id: str, db_session_info: str):
-    """Simulates a resource-intensive data crunching task."""
     print(f"SYSTEM: Commencing background generation for {report_id}...")
-    time.sleep(10) # Simulating heavy SQL aggregation
-    print(f"SYSTEM: Report {report_id} is now available for download.")
+    time.sleep(10) 
+    print(f"SYSTEM: Report {report_id} is now available.")
 
 # --- ENDPOINTS ---
 
 @app.get("/health", tags=["System"])
 def health_check(db: Session = Depends(get_db)):
-    """API Heartbeat and Database Connectivity check."""
     try:
         db.execute("SELECT 1")
-        return {"status": "healthy", "version": "1.4.0", "database": "connected"}
+        return {"status": "healthy", "version": "1.5.0", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
+
+@app.websocket("/ws/alerts")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    Persistent connection for real-time hospital alerts.
+    """
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text() # Keep connection alive
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 @app.get("/patients/", response_model=List[schemas.Patient], tags=["Clinical Data"])
 def read_patients(
@@ -76,7 +102,6 @@ def read_patients(
     name: Union[str, None] = None,
     db: Session = Depends(get_db)
 ):
-    """Search and filter patients with support for pagination and partial name matches."""
     query = db.query(models.Patient)
     if department:
         query = query.filter(models.Patient.department == department)
@@ -87,25 +112,36 @@ def read_patients(
     return query.offset(skip).limit(limit).all()
 
 @app.post("/patients/", response_model=schemas.Patient, tags=["Clinical Data"])
-def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
-    """Register a new patient using strict Pydantic V2 validation."""
+async def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
+    """
+    Admits a patient and broadcasts a WebSocket alert if saturation exceeds 90%.
+    """
     db_patient = models.Patient(**patient.dict())
     db.add(db_patient)
     db.commit()
     db.refresh(db_patient)
+
+    # Real-time Saturation Logic
+    capacities = {"ER": 50, "ICU": 20, "General": 100}
+    count = db.query(models.Patient).filter(models.Patient.department == db_patient.department).count()
+    saturation = (count / capacities[db_patient.department]) * 100
+    
+    if saturation >= 90:
+        await manager.broadcast({
+            "event": "CRITICAL_CAPACITY",
+            "department": db_patient.department,
+            "level": f"{saturation}%",
+            "message": f"Emergency: {db_patient.department} has reached critical saturation."
+        })
+
     return db_patient
 
 @app.patch("/patients/{patient_id}/acuity", tags=["Clinical Data"])
 async def update_patient_acuity(patient_id: int, new_acuity: int, db: Session = Depends(get_db)):
-    """
-    Updates patient acuity and automatically generates an Audit Log entry.
-    This provides a historical timeline of clinical status changes.
-    """
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient record not found")
     
-    # Create Audit Entry
     audit_entry = models.PatientAudit(
         patient_id=patient_id,
         old_acuity=patient.acuity_level,
@@ -116,21 +152,10 @@ async def update_patient_acuity(patient_id: int, new_acuity: int, db: Session = 
     patient.acuity_level = new_acuity
     db.add(audit_entry)
     db.commit()
-    return {"message": "Clinical status updated", "patient_id": patient_id, "new_acuity": new_acuity}
-
-@app.get("/patients/stats", tags=["Analytics"])
-def get_patient_stats(db: Session = Depends(get_db)):
-    """Raw counts of patients across ER, ICU, and General departments."""
-    stats = {dept: db.query(models.Patient).filter(models.Patient.department == dept).count() 
-             for dept in ["ER", "ICU", "General"]}
-    return stats
+    return {"message": "Status updated and audited", "new_acuity": new_acuity}
 
 @app.get("/departments/saturation", tags=["Analytics"])
 def get_dept_saturation(db: Session = Depends(get_db)):
-    """
-    Calculates department saturation based on fixed capacities.
-    $$ \text{Saturation \%} = \left( \frac{\text{Current Patients}}{\text{Max Capacity}} \right) \times 100 $$
-    """
     capacities = {"ER": 50, "ICU": 20, "General": 100}
     saturation = {}
     for dept, cap in capacities.items():
@@ -140,11 +165,6 @@ def get_dept_saturation(db: Session = Depends(get_db)):
 
 @app.post("/reports/generate", tags=["Analytics"])
 async def trigger_report(background_tasks: BackgroundTasks):
-    """Triggers an asynchronous clinical report generation task."""
     report_id = f"REP-{int(time.time())}"
-    background_tasks.add_task(generate_clinical_report, report_id, "DB_CONNECTION_ACTIVE")
-    return {
-        "message": "Asynchronous report generation initiated",
-        "report_id": report_id,
-        "estimated_completion": "10 seconds"
-    }
+    background_tasks.add_task(generate_clinical_report, report_id, "ACTIVE")
+    return {"message": "Background task started", "report_id": report_id}
