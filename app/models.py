@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from datetime import datetime
 from .database import Base
 
@@ -23,3 +23,14 @@ class PatientAudit(Base):
     new_acuity = Column(Integer)
     change_date = Column(DateTime, default=datetime.utcnow)
     changed_by = Column(String, default="System") # Future-proofing for Auth
+    
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    role = Column(String, default="clinician")
