@@ -1,6 +1,7 @@
 import time
 from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Union, Optional
 from . import models, schemas, database, auth
@@ -82,7 +83,10 @@ def health_check(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1")) 
         return {"status": "healthy", "version": "2.0.0", "database": "connected"}
     except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "error": str(e)}
+        )
 
 @app.websocket("/ws/alerts")
 async def websocket_endpoint(websocket: WebSocket):
