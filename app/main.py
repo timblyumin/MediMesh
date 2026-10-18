@@ -105,6 +105,9 @@ def read_patients(
     name: Union[str, None] = None,
     db: Session = Depends(get_db)
 ):
+    if skip < 0 or limit < 0:
+        raise HTTPException(status_code=422, detail="skip and limit must be non-negative")
+
     query = db.query(models.Patient)
     if department:
         query = query.filter(models.Patient.department == department)
