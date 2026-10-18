@@ -9,6 +9,13 @@ class PatientBase(BaseModel):
     acuity_level: int = Field(..., ge=1, le=5)
     status: str = Field(default="Admitted")
 
+    @field_validator('name', mode='before')
+    @classmethod
+    def strip_name_whitespace(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
     @field_validator('name')
     @classmethod
     def name_must_be_capitalized(cls, v: str) -> str:
