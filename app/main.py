@@ -141,6 +141,9 @@ async def create_patient(patient: schemas.PatientCreate, db: Session = Depends(g
 
 @app.patch("/patients/{patient_id}/acuity", tags=["Clinical Data"])
 async def update_patient_acuity(patient_id: int, new_acuity: int, db: Session = Depends(get_db)):
+    if not 1 <= new_acuity <= 5:
+        raise HTTPException(status_code=422, detail="Acuity level must be between 1 and 5")
+
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient record not found")
