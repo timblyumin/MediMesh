@@ -1,4 +1,5 @@
 import time
+from uuid import uuid4
 from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -178,7 +179,7 @@ def get_dept_saturation(db: Session = Depends(get_db)):
 
 @app.post("/reports/generate", tags=["Analytics"])
 async def trigger_report(background_tasks: BackgroundTasks):
-    report_id = f"REP-{int(time.time())}"
+    report_id = f"REP-{uuid4().hex}"
     background_tasks.add_task(generate_clinical_report, report_id, "ACTIVE")
     return {"message": "Background task started", "report_id": report_id}
 
