@@ -129,7 +129,7 @@ async def create_patient(patient: schemas.PatientCreate, db: Session = Depends(g
     """
     Admits a patient and broadcasts a WebSocket alert if saturation exceeds 90%.
     """
-    db_patient = models.Patient(**patient.dict())
+    db_patient = models.Patient(**patient.model_dump())
     db.add(db_patient)
     db.commit()
     db.refresh(db_patient)
