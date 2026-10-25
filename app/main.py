@@ -118,6 +118,8 @@ def read_patients(
         query = query.filter(models.Patient.department == department)
     if acuity:
         query = query.filter(models.Patient.acuity_level == acuity)
+    if name is not None:
+        name = name.strip()
     if name:
         query = query.filter(models.Patient.name.contains(name))
     return query.offset(skip).limit(limit).all()
