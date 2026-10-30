@@ -1,5 +1,6 @@
 import unittest
 
+from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -42,6 +43,25 @@ class TestPatientSearch(unittest.TestCase):
         )
         self.assertEqual([p.name for p in patients], ["Alice Jones"])
 
+
+
+    def test_rejects_negative_pagination(self):
+        for skip, limit in ((-1, 1), (0, -1), (-1, -1)):
+            with self.subTest(skip=skip, limit=limit):
+                with self.assertRaises(HTTPException) as error:
+                    read_patients(skip=skip, limit=limit, db=self.db)
+                self.assertEqual(error.exception.status_code, 422)
+
+    def test_pagination_returns_separate_pages(self):
+        first = read_patients(name="Alice", skip=0, limit=1, db=self.db)
+        second = read_patients(name="Alice", skip=1, limit=1, db=self.db)
+        self.assertEqual(len(first), 1)
+        self.assertEqual(len(second), 1)
+        self.assertNotEqual(first[0].id, second[0].id)
+
+    def test_empty_pages_return_empty_list(self):
+        self.assertEqual(read_patients(limit=0, db=self.db), [])
+        self.assertEqual(read_patients(skip=10, db=self.db), [])
 
 if __name__ == "__main__":
     unittest.main()
