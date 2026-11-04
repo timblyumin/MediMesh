@@ -11,3 +11,12 @@ MediMesh is an AI-powered analytics platform that optimizes hospital operations 
 MediMesh calculates hospital flow using a saturation threshold:
 - **Formula:** (Current Patients / Max Capacity) * 100
 - **Alerts:** Real-time WebSocket broadcasts trigger at 90% saturation.
+
+## Tests
+With the project dependencies installed, run these checks from the repository root:
+
+```bash
+python -m unittest discover -s tests -p "test_patient_*.py" -v
+```
+
+These tests cover patient validation, name searches, and pagination. Search tests use a temporary SQLite database, so a running PostgreSQL server is not needed.
