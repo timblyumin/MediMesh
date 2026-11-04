@@ -122,7 +122,7 @@ def read_patients(
         name = name.strip()
     if name:
         query = query.filter(models.Patient.name.contains(name))
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(models.Patient.id).offset(skip).limit(limit).all()
 
 @app.post("/patients/", response_model=schemas.Patient, tags=["Clinical Data"])
 async def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
