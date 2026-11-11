@@ -113,6 +113,9 @@ def read_patients(
     if skip < 0 or limit < 0:
         raise HTTPException(status_code=422, detail="skip and limit must be non-negative")
 
+    if acuity is not None and not 1 <= acuity <= 5:
+        raise HTTPException(status_code=422, detail="Acuity level must be between 1 and 5")
+
     query = db.query(models.Patient)
     if department:
         query = query.filter(models.Patient.department == department)
