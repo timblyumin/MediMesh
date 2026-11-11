@@ -124,7 +124,7 @@ def read_patients(
         query = query.filter(models.Patient.name.contains(name))
     return query.order_by(models.Patient.id).offset(skip).limit(limit).all()
 
-@app.post("/patients/", response_model=schemas.Patient, tags=["Clinical Data"])
+@app.post("/patients/", response_model=schemas.Patient, status_code=status.HTTP_201_CREATED, tags=["Clinical Data"])
 async def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
     """
     Admits a patient and broadcasts a WebSocket alert if saturation exceeds 90%.
