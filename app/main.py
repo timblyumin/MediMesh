@@ -54,9 +54,9 @@ app.add_middleware(
 # Observability Middleware (HTTP)
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
+    start_time = time.perf_counter()
     response = await call_next(request)
-    process_time = time.time() - start_time
+    process_time = time.perf_counter() - start_time
     print(f"INFO: {request.method} {request.url.path} | Processed in {process_time:.4f}s")
     response.headers["X-Process-Time"] = str(process_time)
     return response
