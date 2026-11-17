@@ -12,6 +12,17 @@ MediMesh calculates hospital flow using a saturation threshold:
 - **Formula:** (Current Patients / Max Capacity) * 100
 - **Alerts:** Real-time WebSocket broadcasts trigger at 90% saturation.
 
+## Patient Search
+With the API running locally, try combining filters to find patients:
+
+```bash
+curl "http://localhost:8000/patients/?department=ER&acuity=2&name=Alice&skip=0&limit=10"
+```
+
+This returns up to 10 patients in the ER with acuity 2 whose names contain `Alice`. All filters are optional, and no matches return an empty list (`[]`).
+
+Use acuity values from 1 to 5 and non-negative values for `skip` and `limit`. Invalid values return HTTP 422. Pagination defaults to `skip=0` and `limit=100`.
+
 ## Tests
 With the project dependencies installed, run these checks from the repository root:
 
