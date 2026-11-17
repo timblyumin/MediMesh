@@ -45,6 +45,14 @@ class TestPatientSearch(unittest.TestCase):
 
 
 
+    def test_search_rejects_invalid_acuity(self):
+        for acuity in (-1, 0, 6):
+            with self.subTest(acuity=acuity):
+                with self.assertRaises(HTTPException) as error:
+                    read_patients(acuity=acuity, db=self.db)
+                self.assertEqual(error.exception.status_code, 422)
+                self.assertEqual(error.exception.detail, "Acuity level must be between 1 and 5")
+
     def test_rejects_negative_pagination(self):
         for skip, limit in ((-1, 1), (0, -1), (-1, -1)):
             with self.subTest(skip=skip, limit=limit):
