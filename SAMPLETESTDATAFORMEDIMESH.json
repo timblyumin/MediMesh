@@ -1,0 +1,165 @@
+{
+  "unit": "Emergency Department",
+  "generated_at": "2026-03-05T23:00:00",
+  "thresholds": {
+    "wait_warning": 60,
+    "wait_critical": 90,
+    "occupancy_warning": 85,
+    "occupancy_critical": 95,
+    "staffing_gap_warning": 1,
+    "staffing_gap_critical": 3
+  },
+  "hours": [
+    {
+      "time": "2026-03-05T12:00:00",
+      "forecast": false,
+      "wait": 46.6,
+      "occupancy": 68.7,
+      "volume": 37,
+      "staff": 10,
+      "pred_wait": 45.4,
+      "pred_occupancy": 69.9
+    },
+    {
+      "time": "2026-03-05T13:00:00",
+      "forecast": false,
+      "wait": 33.1,
+      "occupancy": 68.2,
+      "volume": 32,
+      "staff": 10,
+      "pred_wait": 31.3,
+      "pred_occupancy": 69.6
+    },
+    {
+      "time": "2026-03-05T14:00:00",
+      "forecast": false,
+      "wait": 22.6,
+      "occupancy": 67,
+      "volume": 27,
+      "staff": 10,
+      "pred_wait": 21.2,
+      "pred_occupancy": 69.4
+    },
+    {
+      "time": "2026-03-05T15:00:00",
+      "forecast": false,
+      "wait": 56.3,
+      "occupancy": 68.3,
+      "volume": 35,
+      "staff": 9,
+      "pred_wait": 57.7,
+      "pred_occupancy": 70.6
+    },
+    {
+      "time": "2026-03-05T16:00:00",
+      "forecast": false,
+      "wait": 118.7,
+      "occupancy": 70.8,
+      "volume": 50,
+      "staff": 9,
+      "pred_wait": 118.7,
+      "pred_occupancy": 73
+    },
+    {
+      "time": "2026-03-05T17:00:00",
+      "forecast": false,
+      "wait": 140,
+      "occupancy": 74.2,
+      "volume": 53,
+      "staff": 9,
+      "pred_wait": 140.6,
+      "pred_occupancy": 74.8
+    },
+    {
+      "time": "2026-03-05T18:00:00",
+      "forecast": false,
+      "wait": 94.2,
+      "occupancy": 74.6,
+      "volume": 45,
+      "staff": 9,
+      "pred_wait": 95.9,
+      "pred_occupancy": 75.2
+    },
+    {
+      "time": "2026-03-05T19:00:00",
+      "forecast": false,
+      "wait": 73,
+      "occupancy": 73.7,
+      "volume": 39,
+      "staff": 9,
+      "pred_wait": 70.1,
+      "pred_occupancy": 75.1
+    },
+    {
+      "time": "2026-03-05T20:00:00",
+      "forecast": false,
+      "wait": 91.2,
+      "occupancy": 75,
+      "volume": 39,
+      "staff": 8,
+      "pred_wait": 92.6,
+      "pred_occupancy": 76.3
+    },
+    {
+      "time": "2026-03-05T21:00:00",
+      "forecast": false,
+      "wait": 75.8,
+      "occupancy": 77.4,
+      "volume": 36,
+      "staff": 8,
+      "pred_wait": 75.7,
+      "pred_occupancy": 77.2
+    },
+    {
+      "time": "2026-03-05T22:00:00",
+      "forecast": false,
+      "wait": 20.2,
+      "occupancy": 77.9,
+      "volume": 25,
+      "staff": 9,
+      "pred_wait": 20.2,
+      "pred_occupancy": 77.8
+    },
+    {
+      "time": "2026-03-05T23:00:00",
+      "forecast": false,
+      "wait": 99.5,
+      "occupancy": 77.7,
+      "volume": 26,
+      "staff": 5,
+      "pred_wait": 101.7,
+      "pred_occupancy": 78.3
+    },
+    {
+      "time": "2026-03-06T00:00:00",
+      "forecast": true,
+      "wait": null,
+      "occupancy": null,
+      "volume": null,
+      "staff": null,
+      "pred_wait": null,
+      "pred_occupancy": null,
+      "pred_volume": 15,
+      "required_staff": 4,
+      "scheduled_staff": 5
+    }
+  ],
+  "factors": [
+    {
+      "factor": "Patients per staff member",
+      "share": 0.994
+    },
+    {
+      "factor": "Volume 1 hour ago",
+      "share": 0.001
+    },
+    {
+      "factor": "Average volume, last 24 hours",
+      "share": 0.001
+    },
+    {
+      "factor": "Volume at this time yesterday",
+      "share": 0.001
+    }
+  ]
+}
