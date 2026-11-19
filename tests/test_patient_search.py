@@ -73,6 +73,12 @@ class TestPatientSearch(unittest.TestCase):
         self.assertEqual(len(second), 1)
         self.assertNotEqual(first[0].id, second[0].id)
 
+    def test_filters_apply_before_pagination(self):
+        first = read_patients(department="ICU", skip=0, limit=1, db=self.db)
+        second = read_patients(department="ICU", skip=1, limit=1, db=self.db)
+        self.assertEqual([p.name for p in first], ["Alice Jones"])
+        self.assertEqual(second, [])
+
     def test_empty_pages_return_empty_list(self):
         self.assertEqual(read_patients(limit=0, db=self.db), [])
         self.assertEqual(read_patients(skip=10, db=self.db), [])
