@@ -28,6 +28,12 @@ class TestPatientSearch(unittest.TestCase):
         patients = read_patients(name="  Alice Smith\t", db=self.db)
         self.assertEqual([p.name for p in patients], ["Alice Smith"])
 
+    def test_partial_name_search(self):
+        for name in ("Smith", "Alice S", "lice Smi"):
+            with self.subTest(name=name):
+                patients = read_patients(name=name, db=self.db)
+                self.assertEqual([p.name for p in patients], ["Alice Smith"])
+
     def test_blank_search_returns_all_patients(self):
         for name in (None, "", "   "):
             with self.subTest(name=name):
