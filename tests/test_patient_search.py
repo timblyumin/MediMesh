@@ -45,6 +45,12 @@ class TestPatientSearch(unittest.TestCase):
 
 
 
+    def test_conflicting_filters_return_empty_list(self):
+        patients = read_patients(
+            name="Alice", department="ICU", acuity=2, db=self.db
+        )
+        self.assertEqual(patients, [])
+
     def test_search_rejects_invalid_acuity(self):
         for acuity in (-1, 0, 6):
             with self.subTest(acuity=acuity):
